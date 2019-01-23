@@ -1,0 +1,88 @@
+---
+title: "Scoped verbs"
+date: " "
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+# Libraries
+library(tidyverse)
+library(googlesheets)
+library(knitr)
+
+# Parameters
+key <- "1TDkJNigZ4c2nVy18N116HwCnkQblRFP3HIkOsmWEo9U"
+```
+
+
+```{r}
+sheet <- gs_key(key)
+```
+
+## Suffixes
+
+```{r}
+gs_read(sheet, ws = "suffix") %>% 
+  select(suffix, `use when`) %>% 
+  kable() 
+```
+
+## Examples
+
+```{r}
+examples <-
+  gs_read(sheet, ws = "examples") %>% 
+  mutate(
+    example_type = if_else(is.na(example_type), lag(example_type), example_type)
+  )
+```
+
+### `mutate()`, `summarize()`, `select()`, and `rename()`
+
+#### Named functions
+
+```{r}
+examples %>% 
+  filter(example_type == "named") %>% 
+  slice(-n()) %>% 
+  select(-example_type) %>% 
+  mutate_all(str_replace_na, " ") %>% 
+  rename_all(funs(str_to_title(.) %>% str_replace("_", " "))) %>% 
+  kable(format = "markdown") #have to specify otherwise doesn't handle empty rows well
+```
+
+#### Extra arguments
+
+```{r}
+examples %>%
+  filter(str_detect(example_type, "(extra)")) %>%
+  select(-example_type) %>% 
+  kable()
+```
+
+#### Anonymous functions
+
+```{r}
+examples %>% 
+  filter(str_detect(example_type, "anonymous")) %>% 
+  select(-example_type) %>% 
+  kable()
+```
+
+### `filter()`
+
+```{r}
+examples %>% 
+  filter(example_type == "filter") %>% 
+  slice(-n()) %>% 
+  select(-example_type) %>% 
+  mutate_all(str_replace_na, " ") %>% 
+  kable(format = "markdown")
+```
+
+
+
